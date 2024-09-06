@@ -13,7 +13,7 @@ set(CMAKE_INSTALL_RPATH "${MILVUS_SDK_PATH}/lib;${PROJECT_SOURCE_DIR}/libs/grpc_
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};$ORIGIN")
 
 # 指定Milvus SDK库路径
-set(MILVUS_SDK_PATH "/home/ljn/milvus_install_dir")
+set(MILVUS_SDK_PATH ${PROJECT_SOURCE_DIR}/libs/milvus_install_dir)
 
 # 包含Milvus SDK头文件
 include_directories(${MILVUS_SDK_PATH}/include
