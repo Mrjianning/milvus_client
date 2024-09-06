@@ -25,7 +25,7 @@ link_directories(${MILVUS_SDK_PATH}/lib
                 ${PROJECT_SOURCE_DIR}/libs/grpc_install/lib)
 
 # 设置可执行文件
-add_executable(milvus_example src/main.cpp)
+add_executable(milvus_example src/main.cpp src/MilvusClient.cpp)
 
 # 链接库文件
 target_link_libraries(milvus_example 
