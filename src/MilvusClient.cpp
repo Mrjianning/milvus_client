@@ -168,6 +168,25 @@ void MilvusClient::GetPartitionStatistics(const std::string& collection_name, co
     std::cout << "分区 " << partition_name << " 的行数: " << part_stat.RowCount() << std::endl;
 }
 
+/**
+ * @brief 获取指定集合的统计信息，并打印集合中的行数。
+ *
+ * @param collection_name 集合的名称。
+ */
+void MilvusClient::GetCollectionStatistics(const std::string& collection_name) {
+    // 声明 CollectionStat 对象用于存储集合统计信息
+    milvus::CollectionStat col_stat;
+
+    // 调用 Milvus 客户端的 GetCollectionStatistics 方法获取集合的统计信息
+    auto status = client_->GetCollectionStatistics(collection_name, col_stat);
+
+    // 检查获取统计信息的状态
+    CheckStatus("获取集合统计信息失败:", status);
+
+    // 打印集合中的行数
+    std::cout << "集合 " << collection_name << " 的行数: " << col_stat.RowCount() << std::endl;
+}
+
 
 // 辅助函数：计时器
 template <typename Func>

@@ -58,9 +58,6 @@ int main() {
     // 4.2 插入数据
     milvus_client.InsertData(collection_name, partition_name, fields_data);
 
-    // 获取并打印分区统计信息
-    milvus_client.GetPartitionStatistics(collection_name, partition_name);
-
     // 5、查询数据
     // 5.1 随机选择一个向量进行查询
     std::uniform_int_distribution<int64_t> int64_gen(0, 999);
@@ -75,10 +72,14 @@ int main() {
     milvus_client.SearchData(collection_name, partition_name, "face", "age", q_vector);
 
     // 6、删除分区
+    milvus_client.GetPartitionStatistics(collection_name, partition_name);
     milvus_client.DeletePartition(collection_name, partition_name);
+    milvus_client.GetPartitionStatistics(collection_name, partition_name);
 
     // 7、删除集合
+    milvus_client.GetCollectionStatistics(collection_name);
     milvus_client.DropCollection(collection_name);
+    milvus_client.GetCollectionStatistics(collection_name);
 
     return 0;
 }

@@ -20,6 +20,7 @@ public:
     void DeletePartition(const std::string& collection_name, const std::string& partition_name);
     void DropCollection(const std::string& collection_name);
     void GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name);
+    void GetCollectionStatistics(const std::string& collection_name) ;
     
 private:
     std::shared_ptr<milvus::MilvusClient> client_;
