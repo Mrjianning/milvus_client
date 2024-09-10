@@ -24,7 +24,7 @@ public:
     
 private:
     std::shared_ptr<milvus::MilvusClient> client_;
-    void CheckStatus(std::string&& prefix, const milvus::Status& status);
+    bool CheckStatus(const std::string& prefix, const milvus::Status& status);
 
     // Helper function for timing operations
     template <typename Func>

@@ -1,12 +1,19 @@
 #include "MilvusClient.h"
 #include <chrono>
+#include <sstream>
+#include <iostream>
 
 // 构造函数：初始化 Milvus 客户端并连接到服务器
 MilvusClient::MilvusClient(const std::string& host, int port) {
     client_ = milvus::MilvusClient::Create();
-    milvus::ConnectParam connect_param{host, port};
+    milvus::ConnectParam connect_param{host, port};  // 设置连接参数
+    connect_param.SetConnectTimeout(5000);           // 设置连接超时时间
+
     auto status = client_->Connect(connect_param);
-    CheckStatus("连接 Milvus 服务器失败:", status);
+    if (!CheckStatus("连接 Milvus 服务器失败:", status)) {
+        std::cerr << "无法连接到 Milvus 服务器，后续操作将不会执行。" << std::endl;
+        return;  // 连接失败，直接返回，避免执行后续操作
+    }
     std::cout << "已连接到 Milvus 服务器。" << std::endl;
 }
 
@@ -15,18 +22,22 @@ MilvusClient::~MilvusClient() {
     client_->Disconnect();
 }
 
-// 检查状态并在失败时退出
-void MilvusClient::CheckStatus(std::string&& prefix, const milvus::Status& status) {
+// 检查状态并返回 true 或 false
+bool MilvusClient::CheckStatus(const std::string& prefix, const milvus::Status& status) {
     if (!status.IsOk()) {
         std::cout << prefix << " " << status.Message() << std::endl;
-        exit(1);
+        return false;  // 返回 false 表示操作失败
     }
+    return true;  // 返回 true 表示操作成功
 }
+
 
 // 创建集合
 void MilvusClient::CreateCollection(const milvus::CollectionSchema collection_schema) {
     auto status = client_->CreateCollection(collection_schema);
-    CheckStatus("创建集合失败:", status);
+    if (!CheckStatus("创建集合失败:", status)) {
+        return;  // 如果失败，直接返回
+    }
     std::cout << "成功创建集合。" << std::endl;
 }
 
@@ -48,7 +59,9 @@ void MilvusClient::CreateIndex(const std::string& collection_name, const std::st
     auto status = client_->CreateIndex(collection_name, index_desc);
     
     // 检查创建索引的状态
-    CheckStatus("创建索引失败:", status);
+    if (!CheckStatus("创建索引失败:", status)) {
+        return;  // 如果失败，直接返回
+    }
     std::cout << "成功创建索引。" << std::endl;
 }
 
@@ -75,7 +88,9 @@ void MilvusClient::CreatePartition(const std::string& collection_name, const std
     auto status = client_->CreatePartition(collection_name, partition_name);
     
     // 检查分区创建状态
-    CheckStatus("创建分区失败:", status);
+    if (!CheckStatus("创建分区失败:", status)) {
+        return;  // 如果失败，直接返回
+    }
     std::cout << "成功创建分区。" << std::endl;
 }
 
@@ -84,7 +99,9 @@ void MilvusClient::CreatePartition(const std::string& collection_name, const std
 void MilvusClient::InsertData(const std::string& collection_name, const std::string& partition_name, std::vector<milvus::FieldDataPtr> fields_data) {
     milvus::DmlResults dml_results;
     auto status = client_->Insert(collection_name, partition_name, fields_data, dml_results);
-    CheckStatus("插入数据失败:", status);
+    if (!CheckStatus("插入数据失败:", status)) {
+        return;  // 如果失败，直接返回
+    }
     std::cout << "成功插入 " << dml_results.IdArray().IntIDArray().size() << " 行数据。" << std::endl;
     
 }
@@ -109,7 +126,9 @@ void MilvusClient::SearchData(const std::string& collection_name, const std::str
     milvus::SearchResults search_results{};
     client_->LoadCollection(collection_name);                       // 加载集合
     auto status = client_->Search(arguments, search_results);       // 查询
-    CheckStatus("搜索失败:", status);
+    if (!CheckStatus("搜索失败:", status)) {
+        return;  // 如果失败，直接返回
+    }
     std::cout << "搜索成功。" << std::endl;
 
     // 输出搜索结果
@@ -137,15 +156,19 @@ void MilvusClient::SearchData(const std::string& collection_name, const std::str
 // 删除分区
 void MilvusClient::DeletePartition(const std::string& collection_name, const std::string& partition_name) {
     auto status = client_->DropPartition(collection_name, partition_name);
-    CheckStatus("删除分区失败:", status);
+    if (!CheckStatus("删除分区失败:", status)) {
+        return;  // 如果失败，直接返回
+    }
     std::cout << "删除分区 " << partition_name << std::endl;
 }
 
 // 删除集合
 void MilvusClient::DropCollection(const std::string& collection_name) {
     auto status = client_->DropCollection(collection_name);
-    CheckStatus("删除集合失败:", status);
-    std::cout << "删除集合 " << collection_name << std::endl;
+    if (!CheckStatus("删除集合失败:", status)) {
+        return;  // 如果失败，直接返回
+    }
+    std::cout << " " << collection_name << std::endl;
 }
 
 /**
@@ -162,7 +185,9 @@ void MilvusClient::GetPartitionStatistics(const std::string& collection_name, co
     auto status = client_->GetPartitionStatistics(collection_name, partition_name, part_stat);
 
     // 检查状态，如果失败则输出错误信息并退出
-    CheckStatus("获取分区统计信息失败:", status);
+     if (!CheckStatus("获取分区的统计信息失败:", status)) {
+        return;  // 如果失败，直接返回
+    }
 
     // 打印分区的行数
     std::cout << "分区 " << partition_name << " 的行数: " << part_stat.RowCount() << std::endl;
@@ -181,7 +206,9 @@ void MilvusClient::GetCollectionStatistics(const std::string& collection_name) {
     auto status = client_->GetCollectionStatistics(collection_name, col_stat);
 
     // 检查获取统计信息的状态
-    CheckStatus("获取集合统计信息失败:", status);
+     if (!CheckStatus("获取集合统计信息失败:", status)) {
+        return;  // 如果失败，直接返回
+    }
 
     // 打印集合中的行数
     std::cout << "集合 " << collection_name << " 的行数: " << col_stat.RowCount() << std::endl;
